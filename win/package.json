@@ -1,0 +1,50 @@
+{
+  "name": "kaleidomescope",
+  "version": "0.1.3-alpha",
+  "description": "An app for making Kaleidoscopes for dome",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron main.js",
+    "test": "test"
+  },
+  "author": "At-Bristol Science Centre",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "electron": "^1.0.0",
+    "install": "^0.8.1",
+    "npm": "^3.10.5",
+    "object-sizeof": "^1.0.10",
+    "remote": "^0.2.6",
+    "serialport": "^4.0.1",
+    "sizeof": "^1.0.0"
+  },
+  "dependencies": {
+    "dialog": "^0.1.8",
+    "fs": "0.0.2",
+    "remote": "^0.2.6"
+  },
+  "build": {
+    "appId": "com.atb.kaleidomescope",
+    "category": "public.app-category.graphics-design",
+    "copyright": "Copyright At-Bristol Science Centre 2016",
+    "asar": true,
+    "productName": "kaleidomescope",
+    "iconUrl": "https://drive.google.com/open?id=0B_5SlMKap8CyVDdFaHN2NTFOYzg",
+    "dmg": {
+      "contents": [
+        {
+          "x": 450,
+          "y": 335,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 150,
+          "y": 335,
+          "type": "file",
+          "path": "computed path to artifact, do not specify it - will be overwritten"
+        }
+      ]
+    }
+  }
+}

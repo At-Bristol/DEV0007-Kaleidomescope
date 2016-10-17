@@ -1,0 +1,1009 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Kaleidomescope - Viewer</title>
+		<link rel="stylesheet" type="text/css" href="css\player.css">
+	</head>
+	<body>
+
+	    <div id="playerContent"></div>
+
+	<!--scripts-->
+			 
+	<script type='text/javascript' src="js\three.js"></script>
+	<script type='text/javascript' src="js\DAT.GUI.js"></script>
+	<!--<script type='text/javascript' src="js\Utils.js"></script>-->
+	<script type='text/javascript' src="js\VideoFrame.min.js"></script>
+	<script type='text/javascript' src="js\stats.min.js"></script>
+
+	<script>
+
+	//Globals
+
+    	var g_SourcePath = "No video loaded"
+    	var g_currentResolution = "none";
+
+    	var g_SourcePath_2 = "No video loaded"
+    	var g_currentResolution_2 = "none";
+
+    	var g_flexible_window = true;
+
+		var g_imageSeq = [];
+		var g_loadedImgSequence = [];
+
+		var g_img;
+
+	    var g_windowWidth;
+		var g_windowHeight;
+		var g_domiantDimension;
+		var g_camera;
+		var g_renderPlaneGeo;
+		var g_renderPlane;
+		var g_renderer;
+		var g_scene;
+		var g_Source = false;
+
+		var g_typeLoaded = 'none';
+
+		var g_constrainAspectRatio = true;
+
+	    var then							= 0;
+		var deltaTime 					    = 0;
+		var frame  							= 0; 
+
+			//
+
+		//Source 1
+
+		var v_FOV 							= 180.0;
+		var v_Roll							= 0.0;
+		var v_Tilt 							= -10.0;
+		var v_Guide_Opacity 				= 50.0;
+		var v_Back_Dimming_Strength			= 0.0;
+		var v_Back_Dimming_Coverage 		= 50.0;
+		var v_Repetitions            		= 1.0;
+		var v_Panorama_Height         		= 1.0;
+		var v_Panorama_Position       		= 0.0;
+		var v_Guide_On 				  		= 0.0;
+		var v_Panorama_FOV_Multiplier       = 1.0;
+		var v_Panorama_Rotate_Source        = 0.0;
+		var v_Panorama_Rotate_Rate          = 0.0;
+		var v_Panorama_Scale_Source         = 100.0;
+		var v_CC_Hue						= 0;
+		var v_CC_Saturation 				= 50;
+		var v_CC_Value	 					= 50;
+		var v_CC_Gamma						= 1.0;
+		var v_CC_Edge_Vingette              = 100.0
+		var v_CC_Fade						= 100.0;
+
+
+		var v_RollRate1						= 0.0;
+
+
+		var v_BC_Blend						= 0.0;
+		var v_BC_Fade                       = 100.0;	
+
+
+
+		//Source 2
+
+		var v_FOV_2 						= 180.0;
+		var v_Roll_2						= 0.0;
+		var v_Tilt_2 						= -10.0;
+		var v_Guide_Opacity_2				= 50.0;
+		var v_Back_Dimming_Strength_2		= 0.0;
+		var v_Back_Dimming_Coverage_2 		= 50.0;
+		var v_Repetitions_2            		= 1.0;
+		var v_Panorama_Height_2         	= 1.0;
+		var v_Panorama_Position_2       	= 0.0;
+		var v_Guide_On_2 				  	= 0.0;
+		var v_Panorama_FOV_Multiplier_2     = 1.0;
+		var v_Panorama_Rotate_Source_2      = 0.0;
+		var v_Panorama_Scale_Source_2       = 100.0;
+		var v_CC_Hue_2						= 0;
+		var v_CC_Saturation_2 				= 50;
+		var v_CC_Value_2	 				= 50;
+		var v_CC_Gamma_2					= 1.0;
+		var v_CC_Edge_Vingette_2            = 100.0
+		var v_CC_Fade_2						= 100.0;
+
+		var v_RollRate2						= 0.0;
+
+		var v_BC_Blend_2					= 50.0;
+		var v_BC_Fade_2                     = 100.0;	
+
+		var autoFade                        = false;
+		var autoFadeInit                    = false;
+		var afFadeRight                     = false;        
+
+
+
+
+
+	</script>
+	<script>
+
+	//electron include
+
+	   
+	   const electron = require('electron');
+       const remote   = electron.remote
+       const dialog   = remote.require('electron').dialog;
+       const fs = require('fs');
+       const {ipcRenderer} = require('electron')
+
+
+	</script>
+
+	<script type='text/javascript' src="js\app\transmit.js"></script>
+	<script type='text/javascript' src="js\app\source.js"></script>
+	<script type='text/javascript' src="js\app\player.js"></script>
+	<script type='text/javascript'>
+
+		source1 = new Source("assets/img/blank.png")
+		source2 = new Source("assets/img/blank.png")
+
+		var player1 = new Player('sourceCanvas1');
+		var player2 = new Player('sourceCanvas2');
+
+
+		player1.loadSource(source1);
+		player2.loadSource(source2);
+
+		player1.mute(true);
+		player2.mute(true);
+
+
+
+	</script>
+	<script>
+
+	//stats window 
+
+		var stats = new Stats();
+		stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+		document.body.appendChild( stats.dom );
+
+
+	</script>
+
+	<script>
+
+         
+       function loadSource(source){
+
+        	console.log("path = " + source.path);
+        	console.log("name = " + source.name);
+        	console.log("extention = " + source.extension)
+        	console.log("type = " + source.type)
+
+            return source
+        };
+        		
+
+    </script>
+
+  
+
+	<script type="x-shader/x-vertex" id="vertexShader"> 
+		
+			varying vec2 vTextureCoord;
+
+			void main() {
+	
+			    vTextureCoord = uv;
+			    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0 );
+			}
+
+	</script>
+
+	<script type="x-shader/x-fragment" id="azimuthalEquidistantFragmentShader"> 
+
+	  #ifdef GL_ES
+	  precision highp float;
+	  #endif
+
+	  #define PI 3.1415926535897931
+	  #define PI2 6.2831853071795862
+				
+		varying vec2 vTextureCoord;
+
+		//Source 1
+
+		uniform float u_FOV;
+		uniform float u_Roll;
+
+		uniform sampler2D tSource1;
+		uniform sampler2D tSource2;
+
+		uniform float u_Frame;
+		uniform float u_RollRate1;
+		uniform float u_RollRate2;
+		
+		
+
+		uniform float u_phi1;
+			uniform float u_lambda0;
+			uniform float u_GuideOn;
+			uniform float u_GuideOpacity;
+			uniform float u_Repetitions;
+			uniform float u_Panorama_FOV_Multiplier;
+
+			uniform float u_CC_Hue;
+			uniform float u_CC_Saturation;
+			uniform float u_CC_Gamma;
+		    uniform float u_CC_Value;
+		    uniform float u_CC_Edge_Vingette;
+		    uniform float u_CC_Fade;
+
+			uniform float u_bmSpread;
+			uniform float u_bmStrength; 
+
+			uniform float u_BC_Blend;
+			uniform float u_BC_Fade; 
+
+			//Source 2
+
+			uniform float u_FOV_2;
+		    uniform float u_Roll_2;
+
+		    uniform float u_phi1_2;
+			uniform float u_lambda0_2;
+			uniform float u_GuideOn_2;
+			uniform float u_GuideOpacity_2;
+			uniform float u_Repetitions_2;
+			uniform float u_Panorama_FOV_Multiplier_2;
+
+			uniform float u_CC_Hue_2;
+			uniform float u_CC_Saturation_2;
+			uniform float u_CC_Gamma_2;
+		    uniform float u_CC_Value_2;
+		    uniform float u_CC_Edge_Vingette_2;
+		    uniform float u_CC_Fade_2;
+
+			uniform float u_bmSpread_2;
+			uniform float u_bmStrength_2; 
+
+			uniform float u_BC_Blend_2;
+			uniform float u_BC_Fade_2; 
+
+
+			vec3 rgb2hsv(vec3 c){
+			    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+			    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+			    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+			    float d = q.x - min(q.w, q.y);
+			    float e = 1.0e-10;
+			    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+			}
+
+		vec3 hsv2rgb(vec3 c){
+				    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+				    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+				    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+				}
+
+		vec2 tc_ae(vec2 vTextureCoord , float lambda0, float repetitions, float phi1, float angleOfView){
+
+			float x = PI2*(vTextureCoord.s - 0.5) * (angleOfView) ;
+		    float y = PI2*(vTextureCoord.t - 0.5 ) * (angleOfView) ;
+
+			float c = sqrt(x*x + y*y);
+		    float phi = asin( cos(c)*sin(phi1) + y*sin(c)*cos(phi1)/c );
+		    float lambda = lambda0 + atan( x*sin(c), (c*cos(phi1)*cos(c) - y*sin(phi1)*sin(c)));
+
+			return vec2( (lambda /(PI*(2.0 / repetitions))) + 0.5, (phi/(PI)) + 0.5 );
+
+		}
+
+
+		
+		void main() {
+        
+			float guideOpacity  = u_GuideOpacity/100.00;			    
+
+			//source
+		    float repetitions   = 	u_Repetitions;
+		    float angleOfView 	= 	u_FOV/(360.0 / u_Panorama_FOV_Multiplier);
+			float phi1       	=   ((u_phi1 +90.0 )* PI)/180.0;
+			float lambda0       =   ((u_lambda0 * PI )/180.0) + ((u_RollRate1/PI)*0.0003 * u_Frame);
+
+			//source2
+			float repetitions_2  = 	u_Repetitions_2;
+		    float angleOfView_2  = 	u_FOV_2/(360.0 / u_Panorama_FOV_Multiplier_2);
+			float phi1_2       	 =  ((u_phi1_2 +90.0 )* PI)/180.0;
+			float lambda0_2      =  (u_lambda0_2 * PI )/180.0 + ((u_RollRate2/PI)*0.0003 * u_Frame);
+
+			//coordinates
+     		vec2 tc = tc_ae(vTextureCoord,lambda0, repetitions, phi1, angleOfView);
+ 		    vec2 tc2 = tc_ae(vTextureCoord,lambda0_2, repetitions_2, phi1_2, angleOfView_2);
+
+		    float maskRadius	  = 	PI*-angleOfView;
+		    float circle          =   pow(PI2*(vTextureCoord.s - 0.5) * (angleOfView)  , 2.0) + pow(PI2*(vTextureCoord.t - 0.5 ) * (angleOfView), 2.0) - pow(maskRadius , 2.0) ;
+			float vingette        =   clamp(-circle*pow(2.0,u_CC_Edge_Vingette),0.0,1.0);
+
+		    vec4 texSample        = 	texture2D(tSource1, tc);
+		  
+		     vec4 tex2Sample      = 	texture2D(tSource2, tc2);
+		
+
+		    float bmSpread        = pow(vTextureCoord.t * ((u_bmSpread/100.0)*3.0),1.5) * (u_bmStrength/100.0);
+
+
+		   
+		    vec4 backMask         =   vec4(bmSpread,bmSpread,bmSpread,bmSpread);  
+
+		  	//color correction
+
+		    vec3 hsv  =  rgb2hsv(texSample.rgb);
+
+		    hsv = vec3(hsv.r + (u_CC_Hue/360.0), hsv.g *( u_CC_Saturation/50.0), hsv.b * u_CC_Value/50.0);
+
+		    texSample.rgb = hsv2rgb(hsv);
+
+		    texSample.rgb = vec3(pow(texSample.r, u_CC_Gamma),pow(texSample.g, u_CC_Gamma),pow(texSample.b, u_CC_Gamma)) * (u_CC_Fade/100.0);
+
+
+		   //color correction
+
+		    vec3 hsv2  =  rgb2hsv(tex2Sample.rgb);
+
+		    hsv2 = vec3(hsv2.r + (u_CC_Hue_2/360.0), hsv2.g *( u_CC_Saturation_2/50.0), hsv2.b * u_CC_Value_2/50.0);
+
+		    tex2Sample.rgb = hsv2rgb(hsv2);
+
+		    tex2Sample.rgb = vec3(pow(tex2Sample.r, u_CC_Gamma_2),pow(tex2Sample.g, u_CC_Gamma_2),pow(tex2Sample.b, u_CC_Gamma_2)) * (u_CC_Fade_2/100.0);
+
+
+		   //////
+
+		   vec4 source1 = ((((texSample ) - backMask)   ) * vingette );
+		   vec4 source2 = ((((tex2Sample ) - backMask)   ) * clamp(-circle*pow(2.0,u_CC_Edge_Vingette),0.0,1.0));
+
+		  gl_FragColor	    = ((source1 * (( 100.0 - u_BC_Blend)/100.0)) +  (source2 *  u_BC_Blend/100.0) ) * (u_BC_Fade/100.0);
+
+
+		    //gl_FragColor = ((source1 / u_BC_Blend) + (source2 * u_BC_Blend));
+
+	    	
+		  }
+
+	</script>
+
+
+	<script type="x-shader/x-fragment" id="stereographicFragmentShader"> 
+
+	  #ifdef GL_ES
+	  precision highp float;
+	  #endif
+
+	  #define PI 3.1415926535897931
+	  #define PI2 6.2831853071795862
+				
+		varying vec2 vTextureCoord;
+		uniform float u_FOV;
+		uniform float u_Roll;
+		uniform sampler2D tSource1;
+		uniform sampler2D tSource2;
+		uniform sampler2D tFish;
+
+		uniform float u_phi1;
+			uniform float u_lambda0;
+			uniform float u_GuideOn;
+			uniform float u_GuideOpacity;
+			uniform float u_Repetitions;
+			uniform float u_Panorama_FOV_Multiplier;
+
+			uniform float u_CC_Hue;
+			uniform float u_CC_Saturation;
+			uniform float u_CC_Gamma;
+		    uniform float u_CC_Value;
+
+			uniform float u_bmSpread;
+			uniform float u_bmStrength; 
+
+			vec3 rgb2hsv(vec3 c){
+			    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+			    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+			    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+			    float d = q.x - min(q.w, q.y);
+			    float e = 1.0e-10;
+			    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+			}
+
+		vec3 hsv2rgb(vec3 c){
+				    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+				    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+				    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+				}
+
+		
+		void main() {
+        
+			float guideOpacity  = u_GuideOpacity/100.00;
+
+		    
+
+		    float repetitions   = 	u_Repetitions;
+		    float angleOfView 	= 	360.0/(u_FOV * u_Panorama_FOV_Multiplier);
+			float phi1       	=   ((u_phi1 +90.0 )* PI)/180.0;
+			float lambda0       =   (u_lambda0 * PI )/180.0;
+
+		    float x = PI2*(vTextureCoord.s - 0.5) ;
+		    float y = PI2*(vTextureCoord.t - 0.5 );
+
+		    // from http://mathworld.wolfram.com/AzimuthalEquidistantProjection.html   
+
+		    float p = sqrt(x*x + y*y);
+
+		    float c = 2.0 * atan(p, angleOfView); 
+
+
+		    float phi = asin( cos(c)*sin(phi1) + y*sin(c)*cos(phi1)/p );
+
+		    float lambda = lambda0 + atan( x*sin(c), (p*cos(phi1)*cos(c) - y*sin(phi1)*sin(c)));
+
+		    // Here we want longitude to wrap all around: -pi,pi -> 0,1
+		    // But latitude works slightly different: -pi/2,pi/2 -> 0,1
+
+		    vec2 tc = vec2((lambda /(PI*(2.0 / repetitions))) + 0.5, (phi/(PI)) + 0.5);
+
+		   float maskRadius	= 	PI;
+			float circle        =   pow(x  , 2.0) + pow(y  , 2.0) - pow(maskRadius , 2.0) ;
+			float vingette      =      clamp(circle,0.0,0.001) * 10000.0;
+
+		    vec4 texSample      = 	texture2D(tSource1, tc);
+		    vec4 guidesSample   = 	texture2D(tSource2, vTextureCoord);
+
+		    float bmSpread        = pow(vTextureCoord.t * ((u_bmSpread/100.0)*3.0),1.5) * (u_bmStrength/100.0);
+
+
+		    vec4 guides        =   ((((guidesSample * -1.0) +1.0) * guideOpacity) *  u_GuideOn);
+		    vec4 backMask      =   vec4(bmSpread,bmSpread,bmSpread,bmSpread);  
+
+
+		   //gl_FragColor	    = 	(((texSample ) - backMask) +  guides  );
+
+		   //hue 
+
+		    vec3 hsv   =  rgb2hsv(texSample.rgb);
+
+		    hsv = vec3(hsv.r + (u_CC_Hue/360.0), hsv.g + u_CC_Saturation/100.0, hsv.b + u_CC_Value/100.0);
+
+		    texSample.rgb = hsv2rgb(hsv);
+
+		    //texSample.rgb = pow(texSample.rgb, u_CC_Gamma);
+
+
+
+
+
+		   //////
+
+
+		   gl_FragColor	    = 	(((texSample - vingette) - backMask) +  guides  );
+
+   
+	    	
+
+
+		  }
+
+	</script>
+
+	<script type="x-shader/x-fragment" id="gnomonicFragmentShader"> 
+
+	  #ifdef GL_ES
+	  precision highp float;
+	  #endif
+
+	  #define PI 3.1415926535897931
+	  #define PI2 6.2831853071795862
+				
+		varying vec2 vTextureCoord;
+		uniform float u_FOV;
+		uniform float u_Roll;
+		uniform sampler2D tSource1;
+		uniform sampler2D tSource2;
+		uniform sampler2D tFish;
+		uniform float u_phi1;
+			uniform float u_lambda0;
+			uniform float u_GuideOn;
+			uniform float u_GuideOpacity;
+			uniform float u_Repetitions;
+
+			uniform float u_bmSpread ;
+			uniform float u_bmStrength; 
+		
+		void main() {
+        
+			float guideOpacity  = u_GuideOpacity/100.00;
+
+		    
+
+		    float repetitions   = 	u_Repetitions;
+		    float angleOfView 	= 	 360.0/u_FOV;
+			float phi1       	=   ((u_phi1 +90.0 )* PI)/180.0;
+			float lambda0       =   (u_lambda0 * PI )/180.0;
+
+		    float x = PI2*(vTextureCoord.s - 0.5) ;
+		    float y = PI2*(vTextureCoord.t - 0.5 );
+
+		    // from http://mathworld.wolfram.com/AzimuthalEquidistantProjection.html   
+
+		    float p = sqrt(x*x + y*y);
+
+		    float c = atan(p, angleOfView); 
+
+		    float phi = asin( cos(c)*sin(phi1) + y*sin(c)*cos(phi1)/p );
+
+		    float lambda = lambda0 + atan( x*sin(c), (p*cos(phi1)*cos(c) - y*sin(phi1)*sin(c)));
+
+		    // Here we want longitude to wrap all around: -pi,pi -> 0,1
+		    // But latitude works slightly different: -pi/2,pi/2 -> 0,1
+
+		    vec2 tc = vec2((lambda /(PI*(2.0 / repetitions))) + 0.5, (phi/(PI)) + 0.5);
+
+		   float maskRadius	= 	PI;
+			float circle        =   pow(x  , 2.0) + pow(y  , 2.0) - pow(maskRadius , 2.0) ;
+			float vingette      =   clamp(circle,0.0,0.001) * 1000.0;
+
+		    vec4 texSample      = 	texture2D(tSource1, tc);
+		    vec4 guidesSample   = 	texture2D(tSource2, vTextureCoord);
+
+		    float bmSpread        = pow(vTextureCoord.t * ((u_bmSpread/100.0)*3.0),1.5) * (u_bmStrength/100.0);
+
+
+		    vec4 guides        =   ((((guidesSample * -1.0) +1.0) * guideOpacity) *  u_GuideOn);
+		    vec4 backMask      =   vec4(bmSpread,bmSpread,bmSpread,bmSpread);  
+
+
+		   gl_FragColor	    = 	(((texSample ) - backMask) +  guides  );
+
+		   //gl_FragColor	    = 	(((texSample - vingette) - backMask) +  guides  );
+
+   
+	    	
+
+
+		  }
+
+	</script>
+
+		
+	<script type="x-shader/x-fragment" id="equirectangularFragmentShader"> 
+
+	  #ifdef GL_ES
+	  precision highp float;
+	  #endif
+
+	  #define PI 3.1415926535897931
+	  #define PI2 6.2831853071795862
+				
+		varying vec2 vTextureCoord;
+		uniform float u_FOV;
+		uniform float u_Roll;
+		uniform sampler2D tSource1;
+		uniform sampler2D tSource2;
+		uniform sampler2D tFish;
+		uniform float u_phi1;
+			uniform float u_lambda0;
+			uniform float u_GuideOn;
+			uniform float u_GuideOpacity;
+			uniform float u_Repetitions;
+
+			uniform float u_bmSpread ;
+			uniform float u_bmStrength; 
+		
+		void main() {
+        
+			float guideOpacity  = u_GuideOpacity/100.00;
+
+		    
+
+		    float repetitions   = 	u_Repetitions;
+		    float angleOfView 	= 	 u_FOV/360.0;
+			float phi1       	=   ((u_phi1 +90.0 )* PI)/180.0;
+			float lambda0       =   (u_lambda0 * PI )/180.0;
+
+		    float x = PI2*(vTextureCoord.s - 0.5) ;
+		    float y = PI2*(vTextureCoord.t - 0.5 );
+
+		    float p = sqrt(x*x + y*y);
+
+		    float c = atan(p, angleOfView); 
+
+		    float phi = asin( cos(c)*sin(phi1) + y*sin(c)*cos(phi1)/p );
+
+		    float lambda = lambda0 + atan( x*sin(c), (p*cos(phi1)*cos(c) - y*sin(phi1)*sin(c)));
+
+
+
+		   float maskRadius	= 	PI;
+			float circle        =   pow(x  , 2.0) + pow(y  , 2.0) - pow(maskRadius , 2.0) ;
+			float vingette      =   clamp(circle,0.0,0.001) * 1000.0;
+
+		    vec4 guidesSample   = 	texture2D(tSource2, vTextureCoord);
+
+		    float bmSpread        = pow(vTextureCoord.t * ((u_bmSpread/100.0)*3.0),1.5) * (u_bmStrength/100.0);
+
+
+		    vec4 guides        =   ((((guidesSample * -1.0) +1.0) * guideOpacity) *  u_GuideOn);
+		    vec4 backMask      =   vec4(bmSpread,bmSpread,bmSpread,bmSpread);  
+
+		   
+		    vec2 tc             =   vec2(((vTextureCoord.s - 0.5)  * angleOfView ) +0.5 + u_phi1/360.0  , ((vTextureCoord.t - 0.5)  * angleOfView) +0.5 + u_lambda0/360.0 );
+
+		    vec4 texSample      = 	texture2D(tSource1, tc);
+
+		    gl_FragColor	    = 	 vec4(texSample);
+
+   
+	    	
+
+
+		  }
+
+	</script>
+
+
+	<script>
+
+
+        initWindow();
+
+		//3d setup
+
+		   canvas1 = document.getElementById('sourceCanvas1');
+		   canvas2 = document.getElementById('sourceCanvas2');
+
+		   
+
+	
+
+			var tSource1Tex			     						=	    new THREE.Texture( canvas1 );
+
+		
+			    tSource1Tex.wrapS 								= 		THREE.MirroredRepeatWrapping;
+				tSource1Tex.wrapT 								= 		THREE.MirroredRepeatWrapping;
+				tSource1Tex.generateMipmaps 					= 		false;
+				tSource1Tex.minFilter  							= 		THREE.LinearFilter;
+
+			
+
+
+			var tSource2Tex	 				  			 		=		new THREE.Texture( canvas2 );
+
+					
+			    tSource2Tex.wrapS 								= 		THREE.MirroredRepeatWrapping;
+				tSource2Tex.wrapT 								= 		THREE.MirroredRepeatWrapping;
+				tSource2Tex.generateMipmaps 					= 		false;
+				tSource2Tex.minFilter  							= 		THREE.LinearFilter;
+
+			
+
+
+
+		
+			var uniforms 				= {
+
+											//Source 1
+				     						tSource1: 					    {type: "t", value: tSource1Tex},
+				     						tSource2: 						{type: "t", value: tSource2Tex},
+				     						u_Frame:                        {type: "f", value: frame},
+				     						u_FOV: 							{type:"f", value: v_FOV },
+				     						u_Roll: 						{type:"f", value: v_Roll },
+				     						u_RollRate1:                    {type: "f", value: v_RollRate1},
+				     						u_phi1:    						{type:"f", value: v_Tilt},
+				     						u_lambda0: 						{type:"f", value: v_Roll },
+				     						u_GuideOpacity:     			{type:"f", value: v_Guide_Opacity },
+				     						u_bmStrength: 					{type:"f", value: v_Back_Dimming_Strength },
+				     						u_bmSpread:  					{type:"f", value: v_Back_Dimming_Coverage },
+				     						u_Repetitions : 				{type:"f", value: v_Repetitions },
+				     						u_GuideOn 	  : 				{type:"f", v_Guide_On},
+				     						u_Panorama_FOV_Multiplier: 		{type:"f", value: v_Panorama_FOV_Multiplier},
+				     						u_CC_Hue: 						{type:"f", value: v_CC_Hue},
+				     						u_CC_Saturation: 				{type:"f", value: v_CC_Saturation},
+				     						u_CC_Value: 					{type:"f", value: v_CC_Value},
+				     						u_CC_Gamma: 					{type:"f", value: v_CC_Gamma},
+				     						u_CC_Edge_Vingette : 			{type:"f", value: v_CC_Edge_Vingette}, 
+				     						u_CC_Fade: 						{type:"f", value: v_CC_Fade}, 
+				     						u_BC_Blend: 					{type:"f", value: v_BC_Blend}, 
+				     						u_BC_Fade: 						{type:"f", value: v_BC_Fade},
+
+
+				     						//Source 2
+				     						u_FOV_2: 						{type:"f", value: v_FOV_2},
+
+				     						u_Roll_2: 						{type:"f", value: v_Roll_2},
+				     						u_RollRate2:                    {type:"f", value: v_RollRate2},
+				     						u_phi1_2:    					{type:"f", value: v_Tilt_2},
+				     						u_lambda0_2: 					{type:"f", value: v_Roll_2},
+				     						u_GuideOpacity_2:  				{type:"f", value: v_Guide_Opacity_2},
+				     						u_bmStrength_2: 				{type:"f", value: v_Back_Dimming_Strength_2},
+				     						u_bmSpread_2:  					{type:"f", value: v_Back_Dimming_Coverage_2},
+				     						u_Repetitions_2: 				{type:"f", value: v_Repetitions_2},
+				     						u_GuideOn_2 	  : 			{type:"f", v_Guide_On_2},
+				     						u_Panorama_FOV_Multiplier_2:    {type:"f", value: v_Panorama_FOV_Multiplier_2},
+				     						u_CC_Hue_2: 					{type:"f", value: v_CC_Hue_2},
+				     						u_CC_Saturation_2: 				{type:"f", value: v_CC_Saturation_2},
+				     						u_CC_Value_2: 					{type:"f", value: v_CC_Value_2},
+				     						u_CC_Gamma_2: 					{type:"f", value: v_CC_Gamma_2},
+				     						u_CC_Edge_Vingette_2 : 			{type:"f", value: v_CC_Edge_Vingette_2}, 
+				     						u_CC_Fade_2: 					{type:"f", value: v_CC_Fade_2}, 
+				     						u_BC_Blend_2: 					{type:"f", value: v_BC_Blend_2}, 
+				     						u_BC_Fade_2: 					{type:"f", value: v_BC_Fade_2},  
+										};
+
+
+
+			 var equirectangularShaderMaterial	= 		new THREE.ShaderMaterial( {
+
+			        uniforms:       uniforms,
+			        vertexShader:   document.getElementById( 'vertexShader' ).textContent,
+			        fragmentShader: document.getElementById( 'equirectangularFragmentShader' ).textContent
+
+			 });
+
+			
+
+			 var azimuthalEquidistantShaderMaterial	= 		new THREE.ShaderMaterial( {
+
+			        uniforms:       uniforms,
+			        vertexShader:   document.getElementById( 'vertexShader' ).textContent,
+			        fragmentShader: document.getElementById( 'azimuthalEquidistantFragmentShader' ).textContent
+
+			 });
+
+			 var gnomonicShaderMaterial	= 		new THREE.ShaderMaterial( {
+
+			        uniforms:       uniforms,
+			        vertexShader:   document.getElementById( 'vertexShader' ).textContent,
+			        fragmentShader: document.getElementById( 'gnomonicFragmentShader' ).textContent
+
+			 });
+
+			 var stereographicShaderMaterial	= 		new THREE.ShaderMaterial( {
+
+			        uniforms:       uniforms,
+			        vertexShader:   document.getElementById( 'vertexShader' ).textContent,
+			        fragmentShader: document.getElementById( 'stereographicFragmentShader' ).textContent
+
+			 });
+
+
+
+        
+			 var g_projectionRenderGeometry = new THREE.PlaneBufferGeometry(  g_domiantDimension,  g_domiantDimension);
+			 var material = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+			 var g_projectionRenderPlane = new THREE.Mesh( g_projectionRenderGeometry,  azimuthalEquidistantShaderMaterial );
+			
+
+
+
+
+			g_scene 			 		     = 		new THREE.Scene();
+
+			
+
+			g_scene.add( g_projectionRenderPlane );
+
+			document.getElementById('playerContent').appendChild( g_renderer.domElement );
+
+
+			g_camera.position.z = 50;
+
+
+	       window.addEventListener( 'resize', initWindow, false);
+
+
+
+		function initWindow(){
+
+           // console.log('initWindow')
+			g_windowWidth 		= 	window.innerWidth-4.0;
+			g_windowHeight 	 	= 	window.innerHeight-4.0;
+			var aspectRatio	    =   g_windowHeight/g_windowWidth;
+			g_domiantDimension  = 	Math.min(g_windowHeight, g_windowWidth);
+			if(g_windowWidth<g_windowHeight){
+
+			    if (!g_camera){
+
+
+			        g_camera 			= 	new THREE.OrthographicCamera( (-g_windowWidth/2), (g_windowWidth/2), ( g_windowHeight/2 )/ aspectRatio, (-g_windowHeight/2 )/aspectRatio, 1, 1000 );
+			    };
+
+			}else{
+
+			    if (!g_camera){
+
+
+			        g_camera 			= 	new THREE.OrthographicCamera( (-g_windowWidth/2) * aspectRatio, (g_windowWidth/2) * aspectRatio, ( g_windowHeight/2 ), (-g_windowHeight/2 ), 1, 1000 );
+			    };
+
+
+			} 
+
+
+			if(!g_renderer){
+				 g_renderer         =   new THREE.WebGLRenderer();;
+			};
+
+		  if(g_constrainAspectRatio){
+
+		  	   console.log('constrain')
+
+		  	   g_camera.left = 10000;
+		  	
+			    g_renderer.setSize( g_domiantDimension  , g_domiantDimension  );
+			    document.getElementById('playerContent').style.margin = (g_windowHeight - g_domiantDimension)/2 + 'px 0 0 ' + (g_windowWidth - g_domiantDimension)/2 + 'px' 
+
+		
+
+			}else{
+
+				 //  console.log('dont constrain')
+
+				  g_renderer.setSize( g_windowWidth, g_windowHeight);
+				  document.getElementById('playerContent').style.margin = '0 0 0 0';
+			}
+
+	
+
+		   
+
+		 };
+
+	</script>
+	<script>
+
+
+        
+	  function render() {
+
+			//stats.begin()
+
+			var now = Date.now();
+			  if (then) {
+			  	now *= 0.001;
+			  	deltaTime = now - then;
+			  }
+			  
+			then = now;
+
+			player1.drawFrame();
+			player2.drawFrame();
+
+           
+
+			if (autoFade){
+
+			    if(!autoFadeInit){
+			        if(v_BC_Blend <= 50){
+			            console.log(v_BC_Blend)
+			            afFadeRight = false;
+			            console.log('fade right')
+			        }else{
+			            console.log('v_BC_Blend')
+			            afFadeRight=true;
+			            console.log('fade left')
+			        };
+			        autoFadeInit = true
+			    };
+
+			    if(!afFadeRight){
+			        fRight(5)
+			        transmit(['v_BC_Blend', v_BC_Blend]);
+			    }else{
+			        fLeft(5)
+			        transmit(['v_BC_Blend', v_BC_Blend]);
+			    }
+			};
+
+			    function fRight(speed){
+
+			        v_BC_Blend  +=  (1/speed) 
+
+			        if(v_BC_Blend >= 100 ){
+			            v_BC_Blend = 100;
+			            autoFade = false;
+			            autoFadeInit = false;
+			        }
+			    }
+
+			    function fLeft(speed){
+
+			        v_BC_Blend -=  (1/speed) 
+
+
+			        if(v_BC_Blend <= 0 ){
+			            v_BC_Blend = 0;
+			            autoFade = false;
+			            autoFadeInit = false;
+			        }
+
+			    };
+                
+			  
+		
+	    
+
+
+			//player1.progress()
+			 //;
+
+	
+
+			tSource1Tex.needsUpdate = true;
+			tSource2Tex.needsUpdate = true;
+
+		    uniforms.u_Frame.value  						= frame;
+	
+		
+			uniforms.u_FOV.value           				 	= v_FOV;
+			uniforms.u_Panorama_FOV_Multiplier.value     	= v_Panorama_FOV_Multiplier;
+			uniforms.u_phi1.value         				 	= v_Tilt;
+			uniforms.u_lambda0.value     				 	= v_Roll;
+			uniforms.u_Repetitions.value  				 	= v_Repetitions;
+			uniforms.u_GuideOn.value      				 	= v_Guide_On;
+			uniforms.u_GuideOpacity.value 				 	= v_Guide_Opacity;
+			uniforms.u_bmSpread.value     				 	= v_Back_Dimming_Coverage;
+			uniforms.u_bmStrength.value   				 	= v_Back_Dimming_Strength;
+			uniforms.u_CC_Saturation.value 				 	= v_CC_Saturation;
+			uniforms.u_CC_Hue.value 	  				 	= v_CC_Hue;
+			uniforms.u_CC_Value.value 	  				 	= v_CC_Value;
+			uniforms.u_CC_Gamma.value 	 				 	= v_CC_Gamma;
+			uniforms.u_CC_Edge_Vingette.value 			 	= v_CC_Edge_Vingette;
+			uniforms.u_CC_Fade.value 		  			 	= v_CC_Fade;
+
+			uniforms.u_RollRate1.value						    = v_RollRate1;									
+
+			uniforms.u_BC_Blend.value  					 	= v_BC_Blend;
+			uniforms.u_BC_Fade.value 					 	= v_BC_Fade; 
+
+
+			//Source 2	
+
+			uniforms.u_FOV_2.value           				 = v_FOV_2;
+			uniforms.u_Panorama_FOV_Multiplier_2.value       = v_Panorama_FOV_Multiplier_2;
+			uniforms.u_phi1_2.value         				 = v_Tilt_2;
+			uniforms.u_lambda0_2.value     				     = v_Roll_2;
+			uniforms.u_Repetitions_2.value  				 = v_Repetitions_2;
+			uniforms.u_GuideOn_2.value      				 = v_Guide_On_2;
+			uniforms.u_GuideOpacity_2.value 				 = v_Guide_Opacity_2;
+			uniforms.u_bmSpread_2.value     				 = v_Back_Dimming_Coverage_2;
+			uniforms.u_bmStrength_2.value   				 = v_Back_Dimming_Strength_2;
+			uniforms.u_CC_Saturation_2.value 				 = v_CC_Saturation_2;
+			uniforms.u_CC_Hue_2.value 	  				     = v_CC_Hue_2;
+			uniforms.u_CC_Value_2.value 	  				 = v_CC_Value_2;
+			uniforms.u_CC_Gamma_2.value 	 				 = v_CC_Gamma_2;
+			uniforms.u_CC_Edge_Vingette_2.value 			 = v_CC_Edge_Vingette_2;
+			uniforms.u_CC_Fade_2.value 		  			     = v_CC_Fade_2;
+
+			uniforms.u_RollRate2.value						 = v_RollRate2;		
+
+			uniforms.u_BC_Blend_2.value  					 = v_BC_Blend_2;
+			uniforms.u_BC_Fade_2.value 					     = v_BC_Fade_2; 
+
+
+			requestAnimationFrame( render );
+			g_renderer.render( g_scene , g_camera );
+
+			frame++;
+
+			//stats.end();
+
+
+
+
+		}
+	  render();
+
+
+
+	</script>
+	</body>
+</html>

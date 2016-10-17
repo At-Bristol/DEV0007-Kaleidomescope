@@ -1,0 +1,135 @@
+﻿<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Kaleidomescope  - Blend</title>
+  <style>
+    body 		{ margin: 0; 
+						  background-color: rgb(0,0,0);
+						  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+						}
+
+	            #guiContainer{
+	            	position: absolute;
+	            	top: 0;
+	            	left: 0;
+	            	width: 100%;
+	            	height:100%;
+	            }
+  </style>
+
+
+</head>
+
+<body>
+
+<div id="guiContainer">
+	<div>
+
+</body>
+
+
+
+<script type='text/javascript' src="js/DAT.GUIcustom.js"></script>
+
+<script>
+		   const electron = require('electron');
+		   const remote   = electron.remote
+           const dialog   = remote.require('electron').dialog;
+           const fs = require('fs');
+
+</script>
+
+<script>
+
+
+
+  			const {ipcRenderer} = require('electron')
+
+
+           ipcRenderer.on('from-Controls', (event, arg) => {
+
+           				console.log(arg);
+
+           				 if(arg[0] == 'v_Video_Progess' && arg[2] == 'sourceCanvas1'){
+           				 	console.log(arg[1])
+						  	params.Video_Progress_1 = arg[1];
+						  }else if(arg[0] == 'v_Video_Progess' && arg[2] == 'sourceCanvas2'){
+						  	params.Video_Progress_2 = arg[1];
+						  }else if(arg[0] == 'v_BC_Blend'){
+						      params.Blend  = arg[1];
+						  }
+
+			   })
+
+
+
+  			var gui = new dat.GUI({
+  				autoplace: false,
+			    width : document.getElementById('guiContainer').innerWidth
+
+			});
+
+
+
+			document.getElementById('guiContainer').appendChild(gui.domElement);
+
+
+	
+			var v_Blend 				  = 0.0;
+			var v_Fade  				  = 100.00;
+			var v_Progress_1  			  = 0;
+			var v_Progress_2  			  = 0;
+
+		
+			var paramsf = function(){
+
+
+			     this.Blend         				=  v_Blend;
+			     this.Fade 							=  v_Fade;
+			     this.Video_Progress_1              =  v_Progress_1;
+			     this.Video_Progress_2              =  v_Progress_2;
+			     this.Auto_Blend                    =  function(){};                
+
+
+			};
+
+	
+			params = new paramsf;
+
+
+			var f1 = gui.addFolder('Blend')
+			f1.add(params , 'Blend', 0, 100).listen().onChange(function(value) {transmit(['v_BC_Blend', value])});
+			f1.add(params , 'Fade', 0, 100).listen().onChange(function(value) {transmit(['v_BC_Fade', value])});
+			f1.add(params, 'Auto_Blend').onChange(function(value) {transmit(['v_Auto_Fade', value])})
+			var f2 = gui.addFolder('Progress')
+			f2.add(params , 'Video_Progress_1', 0, 100).listen().onChange(function(value) {transmit(['v_Video_Progress_1', value])});
+			f2.add(params , 'Video_Progress_2', 0, 100).listen().onChange(function(value) {transmit(['v_Video_Progress_2', value])});
+
+
+
+			f1.open();
+			f2.open();
+		
+			
+
+
+
+		function transmit(message){
+			 ipcRenderer.send('to-Player', message)
+		}
+
+	
+
+		</script>
+		<script>
+
+
+
+		  function recieveValues(){
+
+		  }
+		</script>
+</html>

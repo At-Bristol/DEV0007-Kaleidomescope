@@ -1,0 +1,540 @@
+﻿<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Kaleidomescope  - Source 1</title>
+  <style>
+    body 		{ margin: 0; 
+						  background-color: rgb(0,0,0);
+						  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+						}
+
+	            #guiContainer{
+	            	position: absolute;
+	            	top: 0;
+	            	left: 0;
+	            	width: 100%;
+	            	height:100%;
+	            }
+  </style>
+
+
+</head>
+
+<body>
+
+<div id="guiContainer">
+	<div>
+
+</body>
+
+		<script>
+
+		
+		
+			document.ondragover = document.ondrop = (ev) => {
+			  ev.preventDefault()
+				}
+
+			document.body.ondrop = (ev) => {
+
+
+				  loadFile(ev.dataTransfer.files[0].path);
+				  console.log(ev.dataTransfer.files[0].path);
+				  ev.preventDefault();
+				}
+				
+				
+		</script>
+
+
+<script type='text/javascript' src="js/DAT.GUIcustom.js"></script>
+<!--<script type='text/javascript' src="js/app/saveLoad.js"></script>-->
+
+
+<script>
+		   const electron = require('electron');
+		   const remote   = electron.remote
+           const dialog   = remote.require('electron').dialog;
+           const fs = require('fs');
+
+			g_currentResolution = "2k";
+			g_SourcePath = "None"
+			g_SourceName = "None"
+
+
+</script>
+
+
+
+
+
+
+<script>
+
+
+
+  			const {ipcRenderer} = require('electron')
+
+
+           ipcRenderer.on('from-Controls', (event, arg) => {
+
+           		//console.log('control = ' + arg[2])
+
+           			if(arg[2] == 'sourceCanvas1'){
+
+						  if(arg[0] == 'v_currentResolution'){
+						  	params.Dome_Resolution = arg[1];
+						  }else if(arg[0] == 'v_Video_Progess' && arg[2] == 'sourceCanvas1'){
+						  	params.Video_Progress = arg[1];
+						  } else if(arg[0] == 'v_Path'){
+						
+						  	params.Source_Path = arg[1];
+						  } else if(arg[0] == 'v_Name'){
+					
+
+						  	params.Source_Name = arg[1];
+						  }else if(arg[0] == 'v_Clear_Dome'){
+						      params.Show_Test_Image = false;
+						  } 
+
+					}
+
+			   })
+
+  			var gui = new dat.GUI({
+  				autoplace: false,
+			    width : document.getElementById('guiContainer').innerWidth
+
+			});
+
+
+
+			document.getElementById('guiContainer').appendChild(gui.domElement);
+
+
+	
+			var v_FOV 					  = 180.0;
+			var v_Roll 					  = 0.0;
+			var v_Tilt_X 				  = 0.0;
+			var v_Tilt_Y 				  = 0.0;
+			var v_Guide_Opacity 		  = 50.0;
+			var v_Back_Dimming_Strength   = 0.0;
+			var v_Back_Dimming_Coverage   = 50.0;
+			var v_Repetitions             = 1.0;
+			var v_Panorama_Height         = 1.0;
+			var v_Panorama_Position       = 0.0;
+			var v_Video_Progess			  = 0.0;
+			var v_Output_Projection       = 'Azimuthal Equidistant (Planetarium)';
+			var v_Panorama_FOV_Multiplier = 1.0;
+			var v_Panorama_Rotate_Source  = 0.0;
+			var v_Roll_Rate				  = 0.0;
+			var v_Panorama_Scale_Source	  = 100.0;
+			var v_CC_Gamma				  = 1;
+			var v_CC_Hue				  = 0;
+			var v_CC_Saturation           = 50.0;
+			var v_CC_Value				  = 50.0;
+			var v_CC_Fade				  = 100.0;
+			var v_Loaded_File			  = 'None';
+			var v_Panorama_Rotate_Source_Rate = 0.0;
+
+		
+			var paramsf = function(){
+
+
+			     this.Dome_Resolution					=  g_currentResolution;
+			     this.Source_Path  						=  g_SourcePath;
+			     this.Source_Name   					=  g_SourceName;
+			     
+			     this.FOV 								=  v_FOV;
+			     this.Roll 								=  v_Roll;
+			     this.Tilt 		     					=  v_Tilt_X;
+
+			     this.Output_Projection    			    =  v_Output_Projection;
+
+			     this.Panorama_Height 					=  v_Panorama_Height;
+			     this.Panorama_Position 				=  v_Panorama_Position;
+			     this.Panorama_Repetitions 				=  v_Repetitions; 
+			     this.Panorama_Mirror   			    =  false;
+			     this.Panorama_FOV_Multiplier           =  v_Panorama_FOV_Multiplier; 
+			     this.Panorama_Rotate_Source            =  v_Panorama_Rotate_Source;
+			     this.Panorama_Scale_Source			    =  v_Panorama_Scale_Source;	
+
+
+			     this.Panorama_Rotate_Source_Rate       =  v_Panorama_Rotate_Source_Rate	
+			     this.Roll_Rate       					=  v_Roll_Rate	
+			    
+			     this.Guide_On 							=  false;
+			     this.Guide_Opacity 					=  v_Guide_Opacity;
+
+			     this.Back_Dimming_Strength 			=  v_Back_Dimming_Strength;
+			     this.Back_Dimming_Coverage 			=  v_Back_Dimming_Coverage;
+
+			     this.Video_Play 						=  true;
+			     this.Video_Mute 						=  false;
+			     this.Constrain_Aspect_Ratio 			=  true;
+			     this.View_Source 						=  false;
+
+			     this.Load_File 						=  function(){openLoadFileDialog()};
+			     this.Video_Progress 					=  v_Video_Progess	
+			     this.Video_Loop 						=  true;
+			     this.Show_Test_Image 					=  true;
+			     this.Clear_Dome 						=  function(){clearStage()};
+
+			     this.Gamma   							=   v_CC_Gamma;
+			     this.Hue  								=	v_CC_Hue;
+			     this.Saturation						=   v_CC_Saturation;
+			     this.Value 							=   v_CC_Value;
+			     this.Opacity							=   v_CC_Fade;
+
+			     this.Loaded_Project					= 	v_Loaded_File;
+			     this.Save_Project_As					= 	function(){__saveAs()};
+			     this.Save_Project						=   function(){__save()};
+			     this.Load_Project      				= 	function(){__load()};
+			     this.Load_Project_Settings      		= 	function(){__loadSettings()};
+			     this.Open_Second_Source 				=	function(){ipcRenderer.send('toggleSecondSource')};
+
+
+			};
+
+	
+			params = new paramsf;
+
+	
+			var f5 = gui.addFolder('Window')
+
+			f5.add(params , 'Constrain_Aspect_Ratio').onChange(function(value) {transmit(['v_Constrain_Aspect_Ratio', value, 'player1'])});
+
+			
+
+			var f6 = gui.addFolder('Source')
+			f6.add(params, 'Load_File').onChange(function(value) {transmit(['v_Load_File', value, 'player1'])});
+			f6.add(params , 'Source_Name').listen();
+			f6.add(params , 'Source_Path').listen();
+			f6.add(params , 'Dome_Resolution').listen();
+			f6.add(params , 'View_Source').onChange(function(value) {transmit(['v_View_Source', value, 'player1'])});
+			f6.add(params , 'Clear_Dome');
+
+			var f8 = gui.addFolder('Project');
+        f8.add(params, 'Loaded_Project').listen(); 
+			f8.add(params, 'Save_Project_As');
+			f8.add(params ,'Save_Project');
+			f8.add(params ,'Load_Project');
+			f8.add(params ,'Load_Project_Settings');
+
+			var f1 = gui.addFolder('Projection')
+
+			f1.add(params , 'FOV', 1, 360).listen().onChange(function(value) {transmit(['v_FOV', value])});
+			f1.add(params , 'Tilt', 0, 180).listen().onChange(function(value) {transmit(['v_Tilt', value])});
+			f1.add(params , 'Roll', -180, 180).listen().onChange(function(value) {transmit(['v_Roll', value,])});
+
+			//var f8 = gui.addFolder('Projection_Advanced')
+			//f8.add(params , 'Output_Projection', [ 'Azimuthal Equidistant (Planetarium)', 'Gnomonic/Rectilinear (Flat screen)','Stereographic (Small World)', 'Equirectangular (Source)' ]).onChange(function(value) { transmit(['v_Projection_Type', value]) });
+			var f7 = gui.addFolder('Panorama');
+
+			f7.add(params , 'Panorama_Height', 0, 2).listen().onChange(function(value) {transmit(['v_Panorama_Height', value, 'player1'])});
+			f7.add(params , 'Panorama_Position', 0, 100).listen().onChange(function(value) {transmit(['v_Panorama_Position', value, 'player1'])});
+			f7.add(params , 'Panorama_Repetitions', 1, 24).step(1).listen().onChange(function(value) {transmit(['v_Repetitions', value, 'player1'])});
+			f7.add(params , 'Panorama_FOV_Multiplier',1,10).step(1).listen().onChange(function(value) {transmit(['v_Panorama_FOV_Multiplier', value])});
+			f7.add(params , 'Panorama_Rotate_Source',0,360).listen().onChange(function(value) {transmit(['v_Panorama_Rotate_Source', value, 'player1'])});
+			
+			f7.add(params , 'Panorama_Scale_Source',0,400).listen().onChange(function(value) {transmit(['v_Panorama_Scale_Source', value, 'player1'])});
+			//f7.add(params , 'Panorama_Mirror').listen().onChange(function(value) {transmit(['v_Panorama_Mirror', value, 'player1'])});
+
+
+			var f9 = gui.addFolder('Rate Controls');
+			f9.add(params , 'Panorama_Rotate_Source_Rate',-100,100).listen().onChange(function(value) {transmit(['v_Panorama_Rotate_Source_Rate', value,'player1'])});
+			f9.add(params , 'Roll_Rate',-100,100).listen().onChange(function(value) {transmit(['v_RollRate1', value])}); 
+
+		    var f8 = gui.addFolder('Colour Correction')
+			f8.add(params , 'Gamma', 0.1, 3).listen().onChange(function(value) {transmit(['v_CC_Gamma', value])});
+			f8.add(params , 'Hue', -180, 180).listen().onChange(function(value) {transmit(['v_CC_Hue', value])});
+			f8.add(params , 'Saturation', 0, 100).listen().onChange(function(value) {transmit(['v_CC_Saturation', value])});
+			f8.add(params , 'Value', 0, 100).listen().onChange(function(value) {transmit(['v_CC_Value', value])});
+			f8.add(params , 'Opacity', 0, 100).listen().onChange(function(value) {transmit(['v_CC_Fade', value])});
+
+			var f2 = gui.addFolder('Guides');
+			f2.add(params , 'Guide_On').listen().onChange(function(value) {transmit(['v_Guide_On', value])});
+			f2.add(params , 'Guide_Opacity', -100, 100).listen().onChange(function(value) {transmit(['v_Guide_Opacity', value])});
+
+			var f3 = gui.addFolder('Back Dimming')
+			f3.add(params , 'Back_Dimming_Strength', 0, 100).listen().onChange(function(value) {transmit(['v_Back_Dimming_Strength', value])});
+			f3.add(params , 'Back_Dimming_Coverage', 0, 100).listen().onChange(function(value) {transmit(['v_Back_Dimming_Coverage', value])});
+
+			var f4 = gui.addFolder('Video Controls');
+			f4.add(params , 'Video_Play').onChange(function(value) {transmit(['v_Video_Play', value, 'player1'])});
+			f4.add(params , 'Video_Mute').onChange(function(value) {transmit(['v_Video_Mute', value, 'player1'])});
+			f4.add(params , 'Video_Loop').onChange(function(value) {transmit(['v_Video_Loop', value, 'player1'])});
+			f4.add(params , 'Video_Progress', 0, 100).listen().onChange(function(value) {transmit(['v_Video_Progress_1', value
+
+
+
+
+
+
+			])});
+
+			//var f8 = gui.addFolder('Project');
+		
+
+
+			var f7 = gui.addFolder('Utilities');
+			f7.add(params, 'Open_Second_Source');
+
+
+		
+
+
+			f1.open();
+			f2.open();
+			f6.open();
+			
+
+			console.log('params = ' + params.Dome_Resolution);
+
+
+
+		function transmit(message){
+			 ipcRenderer.send('to-Player', message)
+		}
+
+		function clearStage(){
+
+		    transmit(['v_Clear_Stage', 'clear()', 'player1']);
+
+		}
+
+
+		function __saveAs(){
+
+
+              dialog.showSaveDialog({filters: [{name: 'Custom File Type', extensions: ['vtd']}]}, function(fileName){
+
+                              if(fileName === undefined){
+                                  console.log("No file selected");
+                              }else{
+                              	//console.log(JSON.stringify(params))
+                                if (fileName){ 
+                                	console.log(fileName);
+                                	fs.writeFile(fileName, JSON.stringify(params)) 
+                                };
+                              }
+              }); 
+
+			
+		}
+
+
+		function __save(){
+
+			if(v_Loaded_File != 'None'){
+
+			fs.writeFile(v_Loaded_File, JSON.stringify(params));
+
+			console.log('__save');
+		 }else{
+		 	console.log('no file open')
+		 }
+
+
+			
+		}
+
+
+		function __load(settings){
+
+			dialog.showOpenDialog({filters: [{name: 'Custom File Type', extensions: ['vtd']}]},function(fileName){ 
+
+			    loadFile(fileName[0],settings);
+
+				console.log('__load	');
+			});
+
+			
+		}
+
+
+
+
+		function __loadSettings(){
+
+			settings = true; 
+			__load(settings);
+		}
+
+
+		function openSecondSource(){
+
+			console.log('openSecondSource')
+
+		}
+
+
+		function loadFile(filepath, settings){
+
+		     
+		      
+		      
+		      	v_Loaded_File = filepath;
+		      	params.Loaded_Project = v_Loaded_File;
+
+		      	fs.readFile(filepath, 'utf8', (err, data) => {
+
+		      		if(err){console.log(err)};
+
+		      		data = JSON.parse(data);
+
+		      		console.log(data);
+
+			        for(entry in data){
+
+
+			          	params[entry] = data[entry];
+		                
+
+		                switch(entry){
+
+		                 case 'Source_Path':
+		                 if(!settings){
+		                  	  transmit(['v_FileName', data[entry],'player1'])
+		                	  params[entry] = data[entry];
+		              		};
+		                
+		                  break
+
+		                 case 'FOV':
+		                   transmit(['v_FOV', data[entry]]) 
+		                   params[entry] = data[entry];
+		                
+		                   break
+
+		                 case 'Tilt':
+		                   transmit(['v_Tilt', data[entry]]);
+		                   params[entry] = data[entry]; 
+		                   break
+
+		                 case 'Output_Projection':
+		                   transmit(['v_Projection_Type', data[entry]]);
+		                   params[entry] = data[entry]; 
+		                   break
+
+		                 case 'Panorama_Height':
+		                   transmit(['v_Panorama_Height', data[entry],'player1']);
+		                   params[entry] = data[entry]; 
+		                   break
+
+		                 case 'Panorama_Position':
+		                   transmit(['v_Panorama_Position', data[entry],'player1']);
+		                   params[entry] = data[entry]; 
+		                   break  
+
+		                 case 'Panorama_Repetitions':
+		                   transmit(['v_Repetitions', data[entry],'player1']);
+		                   params[entry] = data[entry]; 
+		                   break 
+
+		                 case 'Panorama_FOV_Multiplier':
+		                   transmit(['v_Panorama_FOV_Multiplier', data[entry]]);
+		                   params[entry] = data[entry]; 
+		                   break 
+
+		                  case 'Panorama_Rotate_Source':
+		                   transmit(['v_Panorama_Rotate_Source', data[entry],'player1']);
+		                   params[entry] = data[entry]; 
+		                   break 
+
+		                  case 'Panorama_Scale_Source':
+		                   transmit(['v_Panorama_Scale_Source', data[entry],'player1']);
+		                   params[entry] = data[entry]; 
+		                   break 
+
+		                  case 'Back_Dimming_Strength':
+		                   //transmit(['v_Back_Dimming_Strength', data[entry]]);
+		                   //params[entry] = data[entry]; 
+		                   break 
+
+		                  case 'Back_Dimming_Coverage':
+		                   //transmit(['v_Back_Dimming_Coverage', data[entry]]);
+		                   //params[entry] = data[entry];
+		                   break
+
+		                  case 'Gamma':
+		                   transmit(['v_CC_Gamma', data[entry]]);
+		                   params[entry] = data[entry];
+		                    break
+
+		                  case 'Hue':
+		                   transmit(['v_CC_Hue', data[entry]]);
+		                   params[entry] = data[entry];
+		                    break
+
+		                  case 'Saturation':
+		                   transmit(['v_CC_Saturation', data[entry]]);
+		                   params[entry] = data[entry];
+		                    break
+
+		                  case 'Value':
+		                   transmit(['v_CC_Value', data[entry]]);
+		                   params[entry] = data[entry];
+		                   break
+
+		                  case 'Opacity':
+		                   transmit(['v_CC_Opacity', data[entry]]);
+		                   params[entry] = data[entry];    
+		                   break 
+
+		                  case 'Panorama_Rotate_Source_Rate':
+		                   transmit(['v_Panorama_Rotate_Source_Rate', data[entry],'player1']);
+		                   params[entry] = data[entry];    
+		                   break 
+
+		                  case 'Roll_Rate':
+		                   transmit(['v_RollRate1', data[entry]]);
+		                   params[entry] = data[entry];    
+		                   break 
+
+
+
+		                default: 
+
+		               }
+
+			          }
+		    
+
+		      	});
+		      
+
+		}    
+
+        function openLoadFileDialog(){
+
+	                dialog.showOpenDialog({
+									  filters: [
+                                        {name: 'Movies', extensions: ['mkv', 'mov', 'mp4','webm']},	   
+									    {name: 'Images', extensions: ['jpg', 'png']},
+									    
+									  ],
+									   properties: [
+									   	 'openFile'
+									   ]
+									}          
+										,function (fileNames) {
+							                    if(fileNames === undefined){
+							                        console.log("No file selected");
+							                    }else{
+							                    	console.log(fileNames[0]);
+							                    	transmit(['v_FileName', fileNames[0]]);
+
+							                    }
+	                }); 
+            };
+
+
+		</script>
+
+
+
+</html>
