@@ -61,7 +61,7 @@
 						  }else if(arg[0] == 'v_BC_Blend'){
 						      params.Blend  = arg[1];
 						  }
-
+           
 			   })
 
 
@@ -82,6 +82,7 @@
 			var v_Fade  				  = 100.00;
 			var v_Progress_1  			  = 0;
 			var v_Progress_2  			  = 0;
+			var v_Fade_Speed              = 5.0;
 
 		
 			var paramsf = function(){
@@ -91,7 +92,10 @@
 			     this.Fade 							=  v_Fade;
 			     this.Video_Progress_1              =  v_Progress_1;
 			     this.Video_Progress_2              =  v_Progress_2;
-			     this.Auto_Blend                    =  function(){};                
+			     this.Blend_Speed                    =  v_Fade_Speed;
+			     this.Auto_Blend                    =  function(){};  
+			     this.Blend_Left                     =  function(){}; 
+			     this.Blend_Right                    =  function(){}; 
 
 
 			};
@@ -103,11 +107,15 @@
 			var f1 = gui.addFolder('Blend')
 			f1.add(params , 'Blend', 0, 100).listen().onChange(function(value) {transmit(['v_BC_Blend', value])});
 			f1.add(params , 'Fade', 0, 100).listen().onChange(function(value) {transmit(['v_BC_Fade', value])});
-			f1.add(params, 'Auto_Blend').onChange(function(value) {transmit(['v_Auto_Fade', value])})
+			f1.add(params , 'Blend_Speed', 5, 100).listen().onChange(function(value) {transmit(['v_Fade_Speed', value])});
+			//f1.add(params , 'Auto_Blend').onChange(function(value) {transmit(['v_Auto_Fade', value])});
+			f1.add(params , 'Blend_Left').onChange(function(value) {transmit(['v_Fade_Left', value])});
+			f1.add(params , 'Blend_Right').onChange(function(value) {transmit(['v_Fade_Right', value])});
+           
 			var f2 = gui.addFolder('Progress')
 			f2.add(params , 'Video_Progress_1', 0, 100).listen().onChange(function(value) {transmit(['v_Video_Progress_1', value])});
 			f2.add(params , 'Video_Progress_2', 0, 100).listen().onChange(function(value) {transmit(['v_Video_Progress_2', value])});
-
+			
 
 
 			f1.open();

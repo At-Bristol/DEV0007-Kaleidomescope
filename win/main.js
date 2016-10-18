@@ -155,7 +155,7 @@ function createWindow () {
     blendControlWindow = new BrowserWindow({ 
       x: externalDisplay.bounds.x + 637,
       y: externalDisplay.bounds.y + 50, 
-      height: 300, 
+      height: 350, 
       width: 600, 
       alwaysOnTop: true,  
       title:'Blend Control', 
@@ -176,7 +176,7 @@ function createWindow () {
   }else{ 
        playerWindow = new BrowserWindow({ title:'kaleidomescope',x:600,y:0,closeable: true, height: 800, width: 800, fullscreen: false, frame: true,autoHideMenuBar: false, transparent:'true', defaultFontFamily: 'sanSerif'});
        controlWindow = new BrowserWindow({  height: 800, width: 600, x:0, y:0,  alwaysOnTop: true,  title:'kaleidomescope - Source 1', transparent:'true',  defaultFontFamily: 'sanSerif'}); 
-       blendControlWindow = new BrowserWindow({  height: 300, width: 600, x:600, y:600, alwaysOnTop: true,  title:'Blend Control', transparent:'true',  defaultFontFamily: 'sanSerif',show:false});
+       blendControlWindow = new BrowserWindow({  height: 350, width: 600, x:600, y:600, alwaysOnTop: true,  title:'Blend Control', transparent:'true',  defaultFontFamily: 'sanSerif',show:false});
        controlWindow2 = new BrowserWindow({  height: 800, width: 600, x:1200, y:600, alwaysOnTop: true,  title:'kaleidomescope - Source 2', transparent:'true',  defaultFontFamily: 'sanSerif', show: false}); 
   };
   
@@ -189,12 +189,12 @@ function createWindow () {
 
 
   // Open the DevTools.
- /*
-  playerWindow.webContents.openDevTools();
-controlWindow.webContents.openDevTools();
-controlWindow2.webContents.openDevTools();
-blendControlWindow.webContents.openDevTools();
-*/
+ 
+ // playerWindow.webContents.openDevTools();
+ // controlWindow.webContents.openDevTools();
+ // controlWindow2.webContents.openDevTools();
+//  blendControlWindow.webContents.openDevTools();
+
 
   // Emitted when the window is closed.
   playerWindow.on('closed', function () {

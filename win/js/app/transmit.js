@@ -45,9 +45,42 @@
 	        		break;
 
         	      case "v_Auto_Fade":
+
+
+
         	          if (!autoFade) {
         	              autoFade = true;
+                          
         	              
+        	          } else {
+        	              autoFade = false;
+        	              autoFadeInit = false;
+        	          }
+        	          break;
+
+        	      case "v_Fade_Left":
+
+        	          
+
+        	          if (!autoFade) {
+        	              autoFade = true;
+        	              afFadeRight = true;
+
+        	          } else {
+        	              autoFade = false;
+        	              autoFadeInit = false;
+        	          }
+        	          break;
+
+
+        	      case "v_Fade_Right":
+        	         
+
+
+        	          if (!autoFade) {
+        	              autoFade = true;
+        	              afFadeRight = false;
+
         	          } else {
         	              autoFade = false;
         	              autoFadeInit = false;

@@ -115,7 +115,8 @@
 
 		var autoFade                        = false;
 		var autoFadeInit                    = false;
-		var afFadeRight                     = false;        
+		var afFadeRight                     = false;     
+		var v_Fade_Speed                    = 5.0;
 
 
 
@@ -881,29 +882,19 @@
 
 			if (autoFade){
 
-			    if(!autoFadeInit){
-			        if(v_BC_Blend <= 50){
-			            console.log(v_BC_Blend)
-			            afFadeRight = false;
-			            console.log('fade right')
-			        }else{
-			            console.log('v_BC_Blend')
-			            afFadeRight=true;
-			            console.log('fade left')
-			        };
-			        autoFadeInit = true
-			    };
 
 			    if(!afFadeRight){
-			        fRight(5)
+			        fRight(v_Fade_Speed)
 			        transmit(['v_BC_Blend', v_BC_Blend]);
 			    }else{
-			        fLeft(5)
+			        fLeft(v_Fade_Speed)
 			        transmit(['v_BC_Blend', v_BC_Blend]);
 			    }
 			};
 
-			    function fRight(speed){
+			function fRight(speed){
+
+			    //console.log('fRight')
 
 			        v_BC_Blend  +=  (1/speed) 
 
@@ -914,7 +905,9 @@
 			        }
 			    }
 
-			    function fLeft(speed){
+			function fLeft(speed){
+
+			    //console.log('fLeft')
 
 			        v_BC_Blend -=  (1/speed) 
 
